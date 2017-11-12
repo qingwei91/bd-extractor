@@ -1,7 +1,7 @@
 ## Description
 
-This is simple class that helps you to extract all the relevant information from the SimFin bulk download files.
+This is simple class for Python 2.7 that helps you to extract all the relevant information from the SimFin bulk download files.
 
 ## Code Example
 
-For an example on how to use the SimFinDataset class check the sample-extraction.py file.
+For an example on how to use the SimFinDataset class, check the sample-extraction.py file.
