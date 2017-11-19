@@ -94,7 +94,7 @@ def main():
             input_file_name = val
             print "Will read from %s" % input_file_name
         else:
-            assert False, "unknown Option %s" % opt 
+            assert False, "unknown option %s" % opt 
 
     if (input_file_name != None):
         import os.path
