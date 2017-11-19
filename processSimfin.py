@@ -2,7 +2,11 @@
 
 import extractor
 import getopt,sys,os
-import xlsxwriter
+try:
+    import xlsxwriter
+except ImportError:
+    print "Can't import xlsxWritter , use \"pip install xlsxwritten\" or visit http://xlsxwriter.readthedocs.io to get it"
+    exit()
 
 def nextCol(max):
     col_num=0
@@ -58,7 +62,6 @@ def parseDb(input_file_name):
 
                         
     print "Num companies %d , Num data periods %d - num missing indicators %d" % (numCompanies,dataset.numTimePeriods,numMissingIndicators)
-    #print "Num missing indicators %d , num missing values %d" % (numMissingIndicators,numMissingValues)
     
     #freeze top row :
     worksheet.freeze_panes(1, 0)
@@ -71,7 +74,8 @@ def parseDb(input_file_name):
 
 
 def print_usage():
-    pass
+    print "--inputFile=<> - specify the CSV to be parsed (mandatory)"
+    print "--help - print this information"
 
 def main():
     input_file_name = None
@@ -90,7 +94,7 @@ def main():
             input_file_name = val
             print "Will read from %s" % input_file_name
         else:
-            assert False, "unhandled option"
+            assert False, "unknown Option %s" % opt 
 
     if (input_file_name != None):
         import os.path
