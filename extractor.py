@@ -1,9 +1,34 @@
 import csv
 from math import floor
 
+
+class Company(object):
+    def __init__(self, compId):
+        self.id = int(compId)
+        self.name = ""
+        self.ticker = ""
+        self.industryCode = 0
+        self.finYearMonthEnd = 0
+        self.data = []
+
+    def __str__(self):
+        return "id: " + str(self.id) + ", name: " + str(self.name) + ",  ticker: " + str(self.ticker) + ", data: " + ",".join(str(x) for x in self.data)
+
+    def appendValue(self, indicatorIndex, value):
+        self.data[indicatorIndex].values.append(value)
+
+
+class Indicator:
+    def __init__(self, name):
+        self.name = name
+        self.values = []
+
+    def __str__(self):
+        return "{name: " + str(self.name) + ", len(values): " + str(len(self.values)) + "}"
+
+
 class SimFinDataset:
-    
-    def __init__(self, dataFilePath):
+    def __init__(self, dataFilePath, companyClass=Company):
 
         self.numIndicators = None
         self.numCompanies = 1
@@ -13,12 +38,11 @@ class SimFinDataset:
         self.timePeriods = []
 
         # load data
-        self.loadData(dataFilePath)
+        self.loadData(dataFilePath, companyClass)
 
         self.numTimePeriods = len(self.timePeriods)
-        
 
-    def loadData(self, filePath):
+    def loadData(self, filePath, companyClass=Company):
 
         numRow = 0
 
@@ -43,12 +67,12 @@ class SimFinDataset:
                                     if self.numIndicators is None:
                                         self.numIndicators = index - 1
                                     # add last company
-                                    self.companies.append(Company(idVal))
+                                    self.companies.append(companyClass(idVal))
                                 if index + 1 == rowLen:
                                     if self.numIndicators is None:
                                         self.numIndicators = index
                                     # add last company in file
-                                    self.companies.append(Company(columnVal))
+                                    self.companies.append(companyClass(columnVal))
                                 idVal = columnVal
                     if numRow > 2 and self.numIndicators is None:
                         return
@@ -87,32 +111,10 @@ class SimFinDataset:
                                 appendVal = None
                             else:
                                 appendVal = columnVal
-                            self.companies[compIndex].data[indicatorIndex].values.append(appendVal)
+                            self.companies[compIndex].appendValue(indicatorIndex, appendVal)
 
-
-    def getCompany(self,ticker):
+    def getCompany(self, ticker):
         if ticker in self.tickers:
             return self.companies[self.tickers.index(ticker)]
         else:
             return None
-
-class Company:
-    def __init__(self, compId):
-        self.id = int(compId)
-        self.name = ""
-        self.ticker = ""
-        self.industryCode = 0
-        self.finYearMonthEnd = 0
-        self.data = []
-
-    def __str__(self):
-        return "id: " + str(self.id) + ", name: " + str(self.name) + ",  ticker: " + str(self.ticker) + ", data: " + ",".join(str(x) for x in self.data)
-
-class Indicator:
-    def __init__(self, name):
-        self.name = name
-        self.values = []
-
-    def __str__(self):
-        return "{name: " + str(self.name) + ", len(values): " + str(len(self.values)) + "}"
-
