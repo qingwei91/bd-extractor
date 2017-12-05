@@ -49,7 +49,7 @@ def parseDb(input_file_name,minYear):
             year = int(date_string_match.group(1))
         else:
             year = "NA"
-        if (year > minYear): #include
+        if (year >= minYear): #include
             periodIdxList.append(periodIdx)
             print "Will append data period %s" % time_period
 
@@ -90,6 +90,7 @@ def parseDb(input_file_name,minYear):
 
                         
     print "Num companies written %d , Num data periods %d - num missing indicators %d , num row written %u, collumns %d" % (companyIdx,dataset.numTimePeriods,numMissingIndicators,row,num_columns)
+    print "File saved as %s" % xlsx_file_name
     
     #freeze top row :
     worksheet.freeze_panes(1, 0)
