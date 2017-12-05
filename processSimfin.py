@@ -103,6 +103,7 @@ def parseDb(input_file_name,minYear):
 
 def print_usage():
     print "--inputFile=<> - specify the CSV to be parsed (mandatory)"
+    print "--minYear=<> - will only include entries from this year onwards"
     print "--help - print this information"
 
 def main():
