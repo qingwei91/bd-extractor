@@ -32,14 +32,31 @@ def parseDb(input_file_name,minYear):
     for indicator in dataset.companies[0].data:
         worksheet.write(0, next(col_gen), indicator.name)
         indicator_name_list.append(indicator.name)
+
+    period_name_pattern = "(\w)(\d)-(\d{4})"
+    date_string_pattern = "(\d{4})-(\d{2})-(\d{2})"
+    period_name_re = re.compile(period_name_pattern)
+    date_string_re = re.compile(date_string_pattern)
+        
+    periodIdxList = []
+    # find relevant periods and list 
+    for periodIdx,time_period in enumerate(dataset.timePeriods):
+        fin_period_match = period_name_re.match(time_period)
+        date_string_match = date_string_re.match(time_period)
+        if (fin_period_match):
+            year = int(fin_period_match.group(3))
+        elif (date_string_match):
+            year = int(date_string_match.group(1))
+        else:
+            year = "NA"
+        if (year >= minYear): #include
+            periodIdxList.append(periodIdx)
+            print "Will append data period %s" % time_period
+
     
     
     worksheet.write(0, next(col_gen), "Period Name")
-    worksheet.write(0, next(col_gen), "Report Type")
-    worksheet.write(0, next(col_gen), "Report Seq")
     worksheet.write(0, next(col_gen), "Report Year")
-    period_name_pattern = "(\w)(\d)-(\d{4})"
-    period_name_re = re.compile(period_name_pattern)
     
     numMissingIndicators = 0
     num_columns = next(col_gen) - 1
@@ -47,18 +64,10 @@ def parseDb(input_file_name,minYear):
     numCompanies = len(dataset.companies)
     row = 1
     for companyIdx,company in enumerate(dataset.companies):
-        for periodIdx,time_period in enumerate(dataset.timePeriods):
-            result = period_name_re.match(time_period)
-            if (result):
-                type = result.group(1)
-                seqNum = int(result.group(2))
-                year = int(result.group(3))
-            else:
-                type = "NA"
-                seqNum = "NA"
-                year = "NA"
-                
-            if (year > minYear): # ignore
+        for periodIdx in periodIdxList:
+            time_period = dataset.timePeriods[periodIdx]
+            if (year > minYear):                 
+                #print "Writing period %s" % time_period
                 col_gen = nextCol(100)
                 worksheet.write(row, next(col_gen), company.name)
                 worksheet.write(row, next(col_gen), company.ticker)
@@ -73,18 +82,15 @@ def parseDb(input_file_name,minYear):
                         else:
                             worksheet.write(row, next(col_gen), indicator.values[periodIdx])
                 worksheet.write(row, next(col_gen), time_period)
-                worksheet.write(row, next(col_gen), type)
-                worksheet.write(row, next(col_gen), seqNum)
-                worksheet.write(row, next(col_gen), year)
-            
                 row += 1
-            else:
-               pass
-        print "Written Company %d/%d (%d%%)" % (companyIdx,numCompanies,100*companyIdx/numCompanies)
+            else: # ignore
+                pass
+        print "Written Fundamnetals for Company %d/%d (%d%%)" % (companyIdx,numCompanies,100*companyIdx/numCompanies)
 
 
                         
-    print "Num companies %d , Num data periods %d - num missing indicators %d" % (numCompanies,dataset.numTimePeriods,numMissingIndicators)
+    print "Num companies written %d , Num data periods %d - num missing indicators %d , num row written %u, collumns %d" % (companyIdx,dataset.numTimePeriods,numMissingIndicators,row,num_columns)
+    print "File saved as %s" % xlsx_file_name
     
     #freeze top row :
     worksheet.freeze_panes(1, 0)
@@ -98,6 +104,7 @@ def parseDb(input_file_name,minYear):
 
 def print_usage():
     print "--inputFile=<> - specify the CSV to be parsed (mandatory)"
+    print "--minYear=<> - will only include entries from this year onwards"
     print "--help - print this information"
 
 def main():
