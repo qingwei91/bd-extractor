@@ -23,6 +23,12 @@ usage example :
 ```bash
  $ ./processSimfin.py --inputFile=sample-data.csv --minYear=2016
  ```
+ 
+ getting info of specific companies  by tickers: 
+
+```bash
+ $ ./processSimfin.py --inputFile=sample-data.csv --minYear=2016 --tickers=AAPL,MSFT
+ ```
 
 
 Available under MIT license.

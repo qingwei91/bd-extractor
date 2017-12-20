@@ -15,7 +15,20 @@ def nextCol(max):
         yield col_num
         col_num +=1
 
-def parseDb(input_file_name,minYear):
+def getRelevantComapnies(dataset, tickers):
+    if tickers != None:
+        relevant_companies = set()
+        for ticker in tickers:
+            if ticker not in dataset.tickers:
+                print "The ticker ", ticker, " doesn't exist in db"
+            else:
+                ticker_index = dataset.tickers.index(ticker)
+                relevant_companies.add((ticker_index, dataset.companies[ticker_index]))
+        return relevant_companies
+    return enumerate(dataset.companies)
+    
+
+def parseDb(input_file_name,minYear, tickers = None):
     dataset = extractor.SimFinDataset(input_file_name)
     
     file_name = os.path.splitext(input_file_name)[0] # remove extension
@@ -63,7 +76,7 @@ def parseDb(input_file_name,minYear):
     
     numCompanies = len(dataset.companies)
     row = 1
-    for companyIdx,company in enumerate(dataset.companies):
+    for companyIdx,company in getRelevantComapnies(dataset, tickers):
         for periodIdx in periodIdxList:
             time_period = dataset.timePeriods[periodIdx]
             if (year > minYear):                 
@@ -85,11 +98,11 @@ def parseDb(input_file_name,minYear):
                 row += 1
             else: # ignore
                 pass
-        print "Written Fundamnetals for Company %d/%d (%d%%)" % (companyIdx,numCompanies,100*companyIdx/numCompanies)
+        if tickers is not None:
+            print "Written Fundamnetals for Company %d/%d (%d%%)" % (companyIdx,numCompanies,100*companyIdx/numCompanies)
 
-
-                        
-    print "Num companies written %d , Num data periods %d - num missing indicators %d , num row written %u, collumns %d" % (companyIdx,dataset.numTimePeriods,numMissingIndicators,row,num_columns)
+    if tickers is not None:                    
+        print "Num companies written %d , Num data periods %d - num missing indicators %d , num row written %u, collumns %d" % (companyIdx,dataset.numTimePeriods,numMissingIndicators,row,num_columns)
     print "File saved as %s" % xlsx_file_name
     
     #freeze top row :
@@ -105,13 +118,15 @@ def parseDb(input_file_name,minYear):
 def print_usage():
     print "--inputFile=<> - specify the CSV to be parsed (mandatory)"
     print "--minYear=<> - will only include entries from this year onwards"
+    print "--tickers=<> - will only include entries from this year onwards"
     print "--help - print this information"
 
 def main():
     input_file_name = None
     minYear = 0
+    tickers = None
     try:
-        opts, args = getopt.getopt(sys.argv[1:] ,'', ["help","inputFile=","minYear="])
+        opts, args = getopt.getopt(sys.argv[1:] ,'', ["help","inputFile=","minYear=","tickers=", "ticker="])
     except getopt.GetoptError as err:
         # print help information and exit:
         print str(err)  # will print something like "option -a not recognized"
@@ -127,7 +142,9 @@ def main():
         elif opt in ("--minYear"):
             minYear = int(val)
             print "Will ignore reports from years before %u" % minYear
-
+        elif opt in ("--tickers", "-ticker"):
+            print opt
+            tickers = val.split(",")
         else:
             assert False, "unknown option %s" % opt 
 
@@ -138,7 +155,7 @@ def main():
         else:
             print "%s doesn't exist" % input_file_name
             return
-        parseDb(input_file_name,minYear)
+        parseDb(input_file_name,minYear, tickers)
     else:
         print "No input file name given!"
         print_usage()
