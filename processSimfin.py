@@ -15,7 +15,20 @@ def nextCol(max):
         yield col_num
         col_num +=1
 
-def parseDb(input_file_name,minYear):
+def getRelevantComapnies(dataset, tickers):
+    if tickers != None:
+        relevant_companies = set()
+        for ticker in tickers:
+            if ticker not in dataset.tickers:
+                print "The ticker ", ticker, " doesn't exist in db"
+            else:
+                ticker_index = dataset.tickers.index(ticker)
+                relevant_companies.add((ticker_index, dataset.companies[ticker_index]))
+        return relevant_companies
+    return enumerate(dataset.companies)
+    
+
+def parseDb(input_file_name,minYear, tickers = None):
     dataset = extractor.SimFinDataset(input_file_name)
     
     file_name = os.path.splitext(input_file_name)[0] # remove extension
@@ -32,33 +45,42 @@ def parseDb(input_file_name,minYear):
     for indicator in dataset.companies[0].data:
         worksheet.write(0, next(col_gen), indicator.name)
         indicator_name_list.append(indicator.name)
+
+    period_name_pattern = "(\w)(\d)-(\d{4})"
+    date_string_pattern = "(\d{4})-(\d{2})-(\d{2})"
+    period_name_re = re.compile(period_name_pattern)
+    date_string_re = re.compile(date_string_pattern)
+        
+    periodIdxList = []
+    # find relevant periods and list 
+    for periodIdx,time_period in enumerate(dataset.timePeriods):
+        fin_period_match = period_name_re.match(time_period)
+        date_string_match = date_string_re.match(time_period)
+        if (fin_period_match):
+            year = int(fin_period_match.group(3))
+        elif (date_string_match):
+            year = int(date_string_match.group(1))
+        else:
+            year = "NA"
+        if (year >= minYear): #include
+            periodIdxList.append(periodIdx)
+            print "Will append data period %s" % time_period
+
     
     
     worksheet.write(0, next(col_gen), "Period Name")
-    worksheet.write(0, next(col_gen), "Report Type")
-    worksheet.write(0, next(col_gen), "Report Seq")
     worksheet.write(0, next(col_gen), "Report Year")
-    period_name_pattern = "(\w)(\d)-(\d{4})"
-    period_name_re = re.compile(period_name_pattern)
     
     numMissingIndicators = 0
     num_columns = next(col_gen) - 1
     
     numCompanies = len(dataset.companies)
     row = 1
-    for companyIdx,company in enumerate(dataset.companies):
-        for periodIdx,time_period in enumerate(dataset.timePeriods):
-            result = period_name_re.match(time_period)
-            if (result):
-                type = result.group(1)
-                seqNum = int(result.group(2))
-                year = int(result.group(3))
-            else:
-                type = "NA"
-                seqNum = "NA"
-                year = "NA"
-                
-            if (year > minYear): # ignore
+    for companyIdx,company in getRelevantComapnies(dataset, tickers):
+        for periodIdx in periodIdxList:
+            time_period = dataset.timePeriods[periodIdx]
+            if (year > minYear):                 
+                #print "Writing period %s" % time_period
                 col_gen = nextCol(100)
                 worksheet.write(row, next(col_gen), company.name)
                 worksheet.write(row, next(col_gen), company.ticker)
@@ -73,18 +95,15 @@ def parseDb(input_file_name,minYear):
                         else:
                             worksheet.write(row, next(col_gen), indicator.values[periodIdx])
                 worksheet.write(row, next(col_gen), time_period)
-                worksheet.write(row, next(col_gen), type)
-                worksheet.write(row, next(col_gen), seqNum)
-                worksheet.write(row, next(col_gen), year)
-            
                 row += 1
-            else:
-               pass
-        print "Written Company %d/%d (%d%%)" % (companyIdx,numCompanies,100*companyIdx/numCompanies)
+            else: # ignore
+                pass
+        if tickers is not None:
+            print "Written Fundamnetals for Company %d/%d (%d%%)" % (companyIdx,numCompanies,100*companyIdx/numCompanies)
 
-
-                        
-    print "Num companies %d , Num data periods %d - num missing indicators %d" % (numCompanies,dataset.numTimePeriods,numMissingIndicators)
+    if tickers is not None:                    
+        print "Num companies written %d , Num data periods %d - num missing indicators %d , num row written %u, collumns %d" % (companyIdx,dataset.numTimePeriods,numMissingIndicators,row,num_columns)
+    print "File saved as %s" % xlsx_file_name
     
     #freeze top row :
     worksheet.freeze_panes(1, 0)
@@ -98,13 +117,16 @@ def parseDb(input_file_name,minYear):
 
 def print_usage():
     print "--inputFile=<> - specify the CSV to be parsed (mandatory)"
+    print "--minYear=<> - will only include entries from this year onwards"
+    print "--tickers=<> - will only include entries from this year onwards"
     print "--help - print this information"
 
 def main():
     input_file_name = None
     minYear = 0
+    tickers = None
     try:
-        opts, args = getopt.getopt(sys.argv[1:] ,'', ["help","inputFile=","minYear="])
+        opts, args = getopt.getopt(sys.argv[1:] ,'', ["help","inputFile=","minYear=","tickers=", "ticker="])
     except getopt.GetoptError as err:
         # print help information and exit:
         print str(err)  # will print something like "option -a not recognized"
@@ -120,7 +142,9 @@ def main():
         elif opt in ("--minYear"):
             minYear = int(val)
             print "Will ignore reports from years before %u" % minYear
-
+        elif opt in ("--tickers", "-ticker"):
+            print opt
+            tickers = val.split(",")
         else:
             assert False, "unknown option %s" % opt 
 
@@ -131,7 +155,7 @@ def main():
         else:
             print "%s doesn't exist" % input_file_name
             return
-        parseDb(input_file_name,minYear)
+        parseDb(input_file_name,minYear, tickers)
     else:
         print "No input file name given!"
         print_usage()
