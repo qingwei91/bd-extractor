@@ -100,14 +100,13 @@ class SimFinDataset:
                                 self.companies[a].data.append(Indicator(row[(a * self.numIndicators + b) + 1]))
                 else:
                     # actual data
-                    dataRow = numRow - 4
                     for index, columnVal in enumerate(row):
                         if index == 0:
                             self.timePeriods.append(columnVal)
                         else:
                             compIndex = int(floor((index - 1) / float(self.numIndicators)))
                             indicatorIndex = index - 1 - (self.numIndicators * compIndex)
-                            if dataRow > 1 and (columnVal == "" or columnVal is None):
+                            if columnVal == "" or columnVal is None:
                                 appendVal = None
                             else:
                                 appendVal = columnVal
