@@ -6,7 +6,7 @@ import re
 try:
     import xlsxwriter
 except ImportError:
-    print "Can't import xlsxWritter , use \"pip install xlsxwritten\" or visit http://xlsxwriter.readthedocs.io to get it"
+    print("Can't import xlsxWritter , use \"pip install xlsxwritten\" or visit http://xlsxwriter.readthedocs.io to get it")
     exit()
 
 def nextCol(max):
@@ -20,7 +20,7 @@ def getRelevantComapnies(dataset, tickers):
         relevant_companies = set()
         for ticker in tickers:
             if ticker not in dataset.tickers:
-                print "The ticker ", ticker, " doesn't exist in db"
+                print("The ticker ", ticker, " doesn't exist in db")
             else:
                 ticker_index = dataset.tickers.index(ticker)
                 relevant_companies.add((ticker_index, dataset.companies[ticker_index]))
@@ -28,12 +28,13 @@ def getRelevantComapnies(dataset, tickers):
     return enumerate(dataset.companies)
     
 
-def parseDb(input_file_name,minYear, tickers = None):
-    dataset = extractor.SimFinDataset(input_file_name)
+def parseDb(input_file_name, delmiterStr, minYear, tickers = None):
+
+    dataset = extractor.SimFinDataset(input_file_name,delmiterStr)
     
     file_name = os.path.splitext(input_file_name)[0] # remove extension
     xlsx_file_name = '%s.xlsx' % file_name
-    print "Creating %s" % xlsx_file_name
+    print("Creating %s" % xlsx_file_name)
     workbook = xlsxwriter.Workbook(xlsx_file_name)
     worksheet = workbook.add_worksheet()
 
@@ -64,7 +65,7 @@ def parseDb(input_file_name,minYear, tickers = None):
             year = "NA"
         if (year >= minYear): #include
             periodIdxList.append(periodIdx)
-            print "Will append data period %s" % time_period
+            print("Will append data period %s" % time_period)
 
     
     
@@ -86,7 +87,7 @@ def parseDb(input_file_name,minYear, tickers = None):
                 worksheet.write(row, next(col_gen), company.ticker)
                 for indIdx,indicator in enumerate(company.data):
                     if indicator.name != indicator_name_list[indIdx]:
-                        print "%s in not in initial list for ticker %s" % (indicator.name,company.ticker)
+                        print("%s in not in initial list for ticker %s" % (indicator.name,company.ticker))
                         numMissingIndicators += 1
                         worksheet.write(row, next(col_gen), "NA")
                     else:
@@ -99,11 +100,11 @@ def parseDb(input_file_name,minYear, tickers = None):
             else: # ignore
                 pass
         if tickers is not None:
-            print "Written Fundamnetals for Company %d/%d (%d%%)" % (companyIdx,numCompanies,100*companyIdx/numCompanies)
+            print("Written Fundamnetals for Company %d/%d (%d%%)" % (companyIdx,numCompanies,100*companyIdx/numCompanies))
 
     if tickers is not None:                    
-        print "Num companies written %d , Num data periods %d - num missing indicators %d , num row written %u, collumns %d" % (companyIdx,dataset.numTimePeriods,numMissingIndicators,row,num_columns)
-    print "File saved as %s" % xlsx_file_name
+        print("Num companies written %d , Num data periods %d - num missing indicators %d , num row written %u, collumns %d" % (companyIdx,dataset.numTimePeriods,numMissingIndicators,row,num_columns))
+    print("File saved as %s" % xlsx_file_name)
     
     #freeze top row :
     worksheet.freeze_panes(1, 0)
@@ -116,20 +117,22 @@ def parseDb(input_file_name,minYear, tickers = None):
 
 
 def print_usage():
-    print "--inputFile=<> - specify the CSV to be parsed (mandatory)"
-    print "--minYear=<> - will only include entries from this year onwards"
-    print "--tickers=<> - will only include entries from this year onwards"
-    print "--help - print this information"
+    print("--inputFile=<> - specify the CSV to be parsed (mandatory)")
+    print("--delimiter=<> - specify the CSV delimiter (defaults to semicolon)")
+    print("--minYear=<> - will only include entries from this year onwards")
+    print("--tickers=<> - will only include entries from this year onwards")
+    print("--help - print this information")
 
 def main():
     input_file_name = None
     minYear = 0
     tickers = None
+    delimiter = "semicolon"
     try:
-        opts, args = getopt.getopt(sys.argv[1:] ,'', ["help","inputFile=","minYear=","tickers=", "ticker="])
+        opts, args = getopt.getopt(sys.argv[1:] ,'', ["help","inputFile=","delimiter=","minYear=","tickers=", "ticker="])
     except getopt.GetoptError as err:
         # print help information and exit:
-        print str(err)  # will print something like "option -a not recognized"
+        print(str(err))  # will print something like "option -a not recognized"
         print_usage()
         sys.exit(2)
     for opt, val in opts:
@@ -138,12 +141,14 @@ def main():
             return
         elif opt in ("--inputFile"):
             input_file_name = val
-            print "Will read from %s" % input_file_name
+            print("Will read from %s" % input_file_name)
+        elif opt in ("--delimiter"):
+            delimiter = val
         elif opt in ("--minYear"):
             minYear = int(val)
-            print "Will ignore reports from years before %u" % minYear
+            print("Will ignore reports from years before %u" % minYear)
         elif opt in ("--tickers", "-ticker"):
-            print opt
+            print(opt)
             tickers = val.split(",")
         else:
             assert False, "unknown option %s" % opt 
@@ -153,11 +158,11 @@ def main():
         if (os.path.isfile(input_file_name)):
             pass             
         else:
-            print "%s doesn't exist" % input_file_name
+            print("%s doesn't exist" % input_file_name)
             return
-        parseDb(input_file_name,minYear, tickers)
+        parseDb(input_file_name,delimiter,minYear, tickers)
     else:
-        print "No input file name given!"
+        print("No input file name given!")
         print_usage()
         return
     
