@@ -16,7 +16,7 @@ dataset = SimFinDataset('sample-data.csv','semicolon')
 
 You can also specify a start and end date for the data points and only keep companies in the dataset that have no missing data values (due to mistakes and/or missing data) by setting the excludeMissing argument to True.
 ```python
-SimFinDataset('sample-data.csv','semicolon',"2011-01-01","2016-12-31",True)
+dataset = SimFinDataset('sample-data.csv','semicolon',"2011-01-01","2016-12-31",True)
 ```
 
 Print number of indicators (for each company) and number of companies in dataset
