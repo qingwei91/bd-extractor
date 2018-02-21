@@ -30,18 +30,12 @@ class Company(object):
             self.helperComplete = False
             self.startDateComplete = None
 
-    def setFirstValue(self, indicatorIndex, value):
-        if value is not None:
-            self.data[indicatorIndex].firstDataPoint = value
-
 class Indicator:
     def __init__(self, name,indicatorId):
         self.name = name
         self.values = []
         self.indicatorId = indicatorId
         self.startDateComplete = None
-
-        self.firstDataPoint = None
 
     def __str__(self):
         return "{name: " + str(self.name) + ", indicatorId: "+str(self.indicatorId)+", len(values): " + str(len(self.values)) + "}"
@@ -152,7 +146,6 @@ class SimFinDataset:
                 else:
                     # actual data
                     inDateRange = False
-                    beforeDateRange = False
                     for index, columnVal in enumerate(row):
                         if index == 0:
 
@@ -168,8 +161,6 @@ class SimFinDataset:
                             # check if in date range
                             if (self.startDatetime is None or currentDate >= self.startDatetime) and (self.endDatetime is None or currentDate <= self.endDatetime):
                                 inDateRange = True
-                            elif self.startDatetime is not None and currentDate < self.startDatetime:
-                                beforeDateRange = True
 
                             if inDateRange:
                                 self.timePeriods.append(columnVal)
@@ -186,10 +177,6 @@ class SimFinDataset:
 
                             if inDateRange:
                                 self.companies[compIndex].appendValue(indicatorIndex, appendVal)
-
-                            if appendVal is not None and (beforeDateRange or (self.startDatetime is None and numRow == self.numDescriptionRows+1)):
-                                # add data to first data row, this is needed for the deletion of companies with missing data
-                                self.companies[compIndex].setFirstValue(indicatorIndex,appendVal)
 
             elif numRow == row_count-1:
                 # the "missing values" row is not used here, since the very last row is a better indicator for completeness of the data
