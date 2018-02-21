@@ -1,6 +1,6 @@
 from extractor import *
 
-# dataset that starts in August 2010, ends in December 2016 and filters out all companies that have some missing values
+# dataset that starts on December 31st 2012, ends in December 2016 and filters out all companies that have some missing values
 # date input format is a string: "%Y-%m-%d"
 dataset = SimFinDataset('sample-data.csv','semicolon',"2012-12-31","2016-12-31",True)
 
