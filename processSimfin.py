@@ -6,7 +6,7 @@ import re
 try:
     import xlsxwriter
 except ImportError:
-    print("Can't import xlsxWritter , use \"pip install xlsxwritten\" or visit http://xlsxwriter.readthedocs.io to get it")
+    print("Can't import xlsxWritter , use \"pip install XlsxWriter\" or visit http://xlsxwriter.readthedocs.io to get it")
     exit()
 
 def nextCol(max):
@@ -25,12 +25,16 @@ def getRelevantComapnies(dataset, tickers):
                 ticker_index = dataset.tickers.index(ticker)
                 relevant_companies.add((ticker_index, dataset.companies[ticker_index]))
         return relevant_companies
+    
+    print ("Using all companies in Dataset - num companies is %u" % (len(dataset.companies)))
     return enumerate(dataset.companies)
     
 
 def parseDb(input_file_name, delmiterStr, minYear, tickers = None):
 
+    print ("Reading Dataset ...")
     dataset = extractor.SimFinDataset(input_file_name,delmiterStr)
+    print ("Done Reading Dataset")
     
     file_name = os.path.splitext(input_file_name)[0] # remove extension
     xlsx_file_name = '%s.xlsx' % file_name
@@ -63,11 +67,13 @@ def parseDb(input_file_name, delmiterStr, minYear, tickers = None):
             year = int(date_string_match.group(1))
         else:
             year = "NA"
-        if (year >= minYear): #include
+        
+        if (year >= minYear): #include this time period
             periodIdxList.append(periodIdx)
-            print("Will append data period %s" % time_period)
+            #print("Will append data period %s" % time_period)
 
     
+    print("Done period Idx fetch , num periods found is %d " % len(periodIdxList))
     
     worksheet.write(0, next(col_gen), "Period Name")
     worksheet.write(0, next(col_gen), "Report Year")
@@ -80,27 +86,23 @@ def parseDb(input_file_name, delmiterStr, minYear, tickers = None):
     for companyIdx,company in getRelevantComapnies(dataset, tickers):
         for periodIdx in periodIdxList:
             time_period = dataset.timePeriods[periodIdx]
-            if (year > minYear):                 
-                #print "Writing period %s" % time_period
-                col_gen = nextCol(100)
-                worksheet.write(row, next(col_gen), company.name)
-                worksheet.write(row, next(col_gen), company.ticker)
-                for indIdx,indicator in enumerate(company.data):
-                    if indicator.name != indicator_name_list[indIdx]:
-                        print("%s in not in initial list for ticker %s" % (indicator.name,company.ticker))
-                        numMissingIndicators += 1
+            #print "Writing period %s" % time_period
+            col_gen = nextCol(100)
+            worksheet.write(row, next(col_gen), company.name)
+            worksheet.write(row, next(col_gen), company.ticker)
+            for indIdx,indicator in enumerate(company.data):
+                if indicator.name != indicator_name_list[indIdx]:
+                    print("%s in not in initial list for ticker %s" % (indicator.name,company.ticker))
+                    numMissingIndicators += 1
+                    worksheet.write(row, next(col_gen), "NA")
+                else:
+                    if (indicator.values[periodIdx] == None):
                         worksheet.write(row, next(col_gen), "NA")
                     else:
-                        if (indicator.values[periodIdx] == None):
-                            worksheet.write(row, next(col_gen), "NA")
-                        else:
-                            worksheet.write(row, next(col_gen), indicator.values[periodIdx])
-                worksheet.write(row, next(col_gen), time_period)
-                row += 1
-            else: # ignore
-                pass
-        if tickers is not None:
-            print("Written Fundamnetals for Company %d/%d (%d%%)" % (companyIdx,numCompanies,100*companyIdx/numCompanies))
+                        worksheet.write(row, next(col_gen), indicator.values[periodIdx])
+            worksheet.write(row, next(col_gen), time_period)
+            row += 1
+        print("Written Fundamnetals for Company %d/%d (%d%%)" % (companyIdx,numCompanies,100*companyIdx/numCompanies))
 
     if tickers is not None:                    
         print("Num companies written %d , Num data periods %d - num missing indicators %d , num row written %u, collumns %d" % (companyIdx,dataset.numTimePeriods,numMissingIndicators,row,num_columns))
@@ -148,7 +150,7 @@ def main():
             minYear = int(val)
             print("Will ignore reports from years before %u" % minYear)
         elif opt in ("--tickers", "-ticker"):
-            print(opt)
+            print("tickers to be extracted are %s" % val)
             tickers = val.split(",")
         else:
             assert False, "unknown option %s" % opt 
