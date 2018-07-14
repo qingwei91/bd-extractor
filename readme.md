@@ -58,6 +58,8 @@ If you are having trouble getting the script to run, check the extractor with th
 
 ## Conversion to XLSX
 
+(not tested for Python 3)
+
 The processSimfin.py script is used for displaying the data in the CSV in a readable .xlsx file. The script utilizes xlsxWritter to generate the xlsx files. 
 
 Created by <a href="https://github.com/ranm">@ranm</a> and extended by <a href="https://github.com/VitBu">@VitBu</a>
