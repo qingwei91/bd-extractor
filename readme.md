@@ -1,6 +1,6 @@
 ## Description
 
-This is simple a class for Python 2.7 that helps you to extract all the relevant information from the SimFin bulk download files.
+This is simple a class for Python (should work for both Python 2 and 3) that helps you to extract all the relevant information from the SimFin bulk download files.
 
 ## Code Examples
 

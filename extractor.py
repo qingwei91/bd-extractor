@@ -91,7 +91,7 @@ class SimFinDataset:
 
         delimiterChar = ";" if delimiter == "semicolon" else ","
 
-        csvfile = open(filePath, 'rb')
+        csvfile = open(filePath, 'r')
         reader = csv.reader(csvfile, delimiter=delimiterChar, quotechar='"')
         row_count = sum(1 for _ in reader)
         csvfile.seek(0)
@@ -123,25 +123,25 @@ class SimFinDataset:
                         return
                     # company name row
                     if numRow == 3:
-                        for a in xrange(0, self.numCompanies):
+                        for a in range(0, self.numCompanies):
                             self.companies[a].name = row[(a * self.numIndicators) + 1]
                     # company ticker row
                     if numRow == 4:
-                        for a in xrange(0, self.numCompanies):
+                        for a in range(0, self.numCompanies):
                             self.companies[a].ticker = row[(a * self.numIndicators) + 1]
                             self.tickers.append(self.companies[a].ticker)
                     # company financial year end row
                     if numRow == 5:
-                        for a in xrange(0, self.numCompanies):
+                        for a in range(0, self.numCompanies):
                             self.companies[a].finYearMonthEnd = row[(a * self.numIndicators) + 1]
                     # company industry code row
                     if numRow == 6:
-                        for a in xrange(0, self.numCompanies):
+                        for a in range(0, self.numCompanies):
                             self.companies[a].industryCode = row[(a * self.numIndicators) + 1]
                     # indicator name row
                     if numRow == 7:
-                        for a in xrange(0, self.numCompanies):
-                            for b in xrange(0, self.numIndicators):
+                        for a in range(0, self.numCompanies):
+                            for b in range(0, self.numIndicators):
                                 self.companies[a].data.append(Indicator(row[(a * self.numIndicators + b) + 1],b))
                 else:
                     # actual data

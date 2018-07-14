@@ -2,7 +2,7 @@ from extractor import *
 
 # dataset that starts on December 31st 2012, ends in December 2016 and filters out all companies that have some missing values
 # date input format is a string: "%Y-%m-%d"
-dataset = SimFinDataset('sample-data.csv','semicolon',"2012-12-31","2016-12-31",True)
+dataset = SimFinDataset('1comp.csv','semicolon',"2012-12-31","2016-12-31",True)
 
 print("Number of indicators in dataset: "+str(dataset.numIndicators))
 print("Number of companies in dataset (companies with some missing values removed): "+str(dataset.numCompanies))
@@ -22,8 +22,7 @@ print(dataset.getCompany("AAPL"))
 print(dataset.getCompany("A"))
 
 
-print "--------"
-quit()
+print("-------")
 # to get the full dataset, omit the options
 
 datasetFull = SimFinDataset('sample-data.csv','semicolon')
