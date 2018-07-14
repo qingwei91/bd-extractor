@@ -7,10 +7,10 @@ dataset = SimFinDataset('sample-data.csv','semicolon',"2012-12-31","2016-12-31",
 print("Number of indicators in dataset: "+str(dataset.numIndicators))
 print("Number of companies in dataset (companies with some missing values removed): "+str(dataset.numCompanies))
 
-print("Company at index position 1: ")
-print(dataset.companies[1])
+print("Company at index position 0: ")
+print(dataset.companies[0])
 print("COGS values for this company: ")
-print(dataset.companies[1].data[1].values)
+print(dataset.companies[0].data[1].values)
 print("respective time periods (string format):")
 print(dataset.timePeriods)
 # time periods can also be displayed as datetime objects (quarters here are the "normal" quarters, same as for companies with financial year ending end of december)
@@ -23,7 +23,7 @@ print(dataset.getCompany("A"))
 
 
 print "--------"
-
+quit()
 # to get the full dataset, omit the options
 
 datasetFull = SimFinDataset('sample-data.csv','semicolon')
@@ -31,10 +31,10 @@ datasetFull = SimFinDataset('sample-data.csv','semicolon')
 print("Number of indicators in full datasetFull: "+str(datasetFull.numIndicators))
 print("Number of companies in full datasetFull: "+str(datasetFull.numCompanies))
 
-print("Company at index position 1: ")
-print(datasetFull.companies[1])
+print("Company at index position 0: ")
+print(datasetFull.companies[0])
 print("COGS values for this company: ")
-print(datasetFull.companies[1].data[1].values)
+print(datasetFull.companies[0].data[1].values)
 print("respective time periods (string format):")
 print(datasetFull.timePeriods)
 print("respective time periods (date format):")

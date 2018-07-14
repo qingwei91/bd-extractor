@@ -50,6 +50,12 @@ Get company object by ticker
 print(dataset.getCompany("AAPL"))
 ```
 
+## Troubleshooting
+
+Currently the extractor only works for the "wide" data format on the SimFin bulk download page. Support for the "narrow" format will be made available in the future.
+
+If you are having trouble getting the script to run, check the extractor with the "1comp.csv" file, as it contains only one company and should be quick to load. This one should also be easy to open in Excel if you want to look at the format of the file.
+
 ## Conversion to XLSX
 
 The processSimfin.py script is used for displaying the data in the CSV in a readable .xlsx file. The script utilizes xlsxWritter to generate the xlsx files. 
