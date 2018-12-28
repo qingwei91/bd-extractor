@@ -1,8 +1,8 @@
 import pandas
 
 file_name = 'output-semicolon-wide.csv'
-# file_name = 'sample-data.csv'
-file_name = '1comp.csv'
+file_name = 'sample-data.csv'
+# file_name = '1comp.csv'
 
 df = pandas.read_csv(file_name, sep=';', header=[2, 5])
 all_levels = df.columns.levels
@@ -22,5 +22,5 @@ date = df['Date']
 for company_name in all_companies:
     print(f'Processing {company_name}')
     cm_data = df[company_name]
-    date.join(cm_data).to_csv(f'data/{company_name}.csv', index=False)
+    date.join(cm_data).to_csv(f'{company_name}.csv', index=False)
 
