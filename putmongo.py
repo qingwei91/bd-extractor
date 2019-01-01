@@ -7,7 +7,7 @@ from os.path import isfile, join
 
 client = MongoClient('localhost', 27017)
 
-db = client['simfin_fundamentals']
+db = client['simfin_data']
 
 def write_to_mongo(path):
     company_name = Path(path).stem
@@ -18,8 +18,8 @@ def write_to_mongo(path):
     for cl in df.columns:
         if cl != 'Date':
             df[cl] = pandas.to_numeric(df[cl])
-        if '.' in cl:
-            df = df.rename(columns={cl: cl.replace('.', '')})
+
+        df = df.rename(columns={cl: cl.replace('.', '').replace(' ', '_')})
 
     df['Date'] = pandas.to_datetime(df['Date'])
     data = df.to_dict(orient='records')
@@ -28,7 +28,7 @@ def write_to_mongo(path):
     return collection.insert_many(data)
 
 data_dir = 'data'
-all_csv_path = [f'data/{f}' for f in listdir(data_dir) if isfile(join(data_dir, f))]
+all_csv_path = [f'{data_dir}/{f}' for f in listdir(data_dir) if isfile(join(data_dir, f))]
 
 for path in all_csv_path:
     write_to_mongo(path)
