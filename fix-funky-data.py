@@ -1,13 +1,8 @@
-from pymongo import MongoClient
-import pandas
 from pathlib import Path
-
 from os import listdir
 from os.path import isfile, join
 
-client = MongoClient('localhost', 27017)
-
-db = client['simfin_data']
+import pandas
 
 def transform_name(s):
     ns = s.replace('&', '_AND_')
@@ -16,7 +11,6 @@ def transform_name(s):
     ns = ns.replace(',', '')
     ns = ns.replace('.', '')
     return ns.replace('__', '_').lower()
-
 
 def remove_null_row(df):
     new_df = pandas.DataFrame()
@@ -28,37 +22,26 @@ def remove_null_row(df):
             new_df = new_df.append(row)
     return new_df
 
-def write_to_mongo(path):
-    company_name = Path(path).stem
-
-    df = pandas.read_csv(path, sep=',')
-    df = df.query("Date.str.startswith('20')")
-
-    for cl in df.columns:
-        if cl != 'Date':
-            df[cl] = pandas.to_numeric(df[cl])
-
-        df = df.rename(columns={cl: transform_name(cl)})
-
-    df['Date'] = pandas.to_datetime(df['Date'])
-    df = remove_null_row(df)
-    data = df.to_dict(orient='records')
-
-    db[company_name].drop()
-
-    if len(df) is 0:
-        return 0
-    else:
-        collection = db[company_name]
-        return collection.insert_many(data)
-
 import sqlite3
 conn = sqlite3.connect('/Users/limqingwei/projects/honey/sql/honey.db')
 
-def write_to_sqlite(path):
-    company_name = Path(path).stem
+def fix_col(df):
+    # faulty_col = [c for c in df.columns if '.1' in c]
+    ok_col = [c for c in df.columns if '.1' not in c]
 
-    df = pandas.read_csv(path, sep=',')
+    new_df = pandas.DataFrame()
+
+    new_df.loc[:, 'Date'] = df['Date']
+
+    for c in ok_col:
+        if c != 'Date':
+            corresponding = f'{c}.1'
+            combined = df[c].combine_first(df[corresponding])
+            new_df.loc[:, c] = combined
+
+    return new_df
+
+def write_to_sqlite(df, company_name):
     df = df.query("Date.str.startswith('20')")
 
     for cl in df.columns:
@@ -78,16 +61,9 @@ def write_to_sqlite(path):
     df = df.set_index(['date', 'company'])
     return df.to_sql('company_fundamentals',conn, if_exists='append')
 
-    # if len(df) is 0:
-    #     return 0
-    # else:
-    #     collection = db[company_name]
-    #     return collection.insert_many(data)
-
-import itertools
-
-data_dir = 'data'
-all_csv_path = [f'{data_dir}/{f}' for f in listdir(data_dir) if isfile(join(data_dir, f))]
+def read_file(path):
+    df = pandas.read_csv(path, sep=',')
+    return df
 
 to_skip = [
     'data/ALTR.csv',
@@ -114,17 +90,8 @@ to_skip = [
 'data/AGN.csv'
 ]
 
-def pred(x):
-    print(x)
-    return x != to_skip[-1]
-
-cont = itertools.dropwhile(pred, all_csv_path)
-cont = list(cont)
-
-for idx, path in enumerate(cont):
-    if path in to_skip:
-        print(f'Skipping for {idx}: {path}')
-    else:
-        print(f'Writing {idx} {path}')
-        write_to_sqlite(path)
-
+for p in to_skip:
+    df = read_file(p)
+    company_name = Path(p).stem
+    fixed = fix_col(df)
+    write_to_sqlite(fixed, company_name)
